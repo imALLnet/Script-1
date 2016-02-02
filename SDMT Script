@@ -1,0 +1,51 @@
+function OnLoad()
+    PrintChat ("SDMT (Simple Damage Measure Tool) v1.0 by Tom")
+end
+--Variables
+local OldHP = {0,0,0,0,0,0,0,0,0,0}
+local ChampDMG = {0,0,0,0,0,0,0,0,0,0}
+local lastDMGtick = {0,0,0,0,0,0,0,0,0,0}
+local tick=0
+ 
+function OnLoad()
+    --Create a menu for configuration (Turning it on/off)
+    Config = scriptConfig("Utilities", "utils")
+    Config:addParam("ShowFocusedAlly", "Show Focused Ally",SCRIPT_PARAM_ONOFF, true)
+end
+ 
+function OnTick()
+    --Get  the tick counter for all time based calculations on the script
+    tick=GetTickCount()
+    --If enabled call the script
+    if Config.ShowFocusedAlly then CalcAllyDamage() end
+end
+    function DamageImpactTaken(iHero)
+    	local target = heroManager:getHero(iHero)
+    	if (target.health==0) then return 0 end
+    	local x=(ChampDMG[iHero]/target.health)
+    	if x > 6 then 
+    		return 7
+    	else
+    		return x
+    	end
+    end
+    function OnDraw()
+    	if (Config.ShowFocusedAlly) then
+    		--Draw champions taking damage. The more focused/damage taken , the more circles it draw. 
+    		for i = 1, heroManager.iCount, 1 do
+    			local target = heroManager:getHero(i)
+    			if ChampDMG[i] > 40 then  -- 40 is to skip minions/minor damage
+    				local di=math.round(DamageImpactTaken(i)) * 2
+    				for j=0, di do
+    					DrawCircle(target.x, target.y, target.z, 100+j*5, 0xFFFFFF)
+    				end
+    			end
+    		end
+    	end 
+    end
+	    function Plugin_FocusedAlly(target,DamageLvlTaken)
+    	if DamageLvlTaken>5 and (myHero:CanUseSpell(_E) == READY) and (GetDistance(target) < 750 ) then
+    		CastSpell(_E, target)
+    	end
+    end
+	
